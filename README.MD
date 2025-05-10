@@ -3,39 +3,37 @@
 
 ## Overview
 
-This project sets up a serverless, event-driven backend for an e-commerce platform using core AWS services. It handles order submission, persistent storage, event broadcasting, queuing, and message processing using Lambda functions.
+This project demonstrates a serverless, event-driven backend architecture tailored for a basic e-commerce platform. Using core AWS services, it efficiently manages order intake, data persistence, event notification, message queuing, and background processing via Lambda.
 
 ---
 
----
+## Components Overview
 
-## Components Used
-
-| Service      | Role                                                                 |
-|--------------|----------------------------------------------------------------------|
-| **DynamoDB** | Stores order records in a table named `Orders`                      |
-| **SNS**      | Topic `OrderTopic` publishes new order events                       |
-| **SQS**      | Queue `OrderQueue` receives SNS messages                            |
-| **Lambda**   | Processes messages from SQS and inserts into DynamoDB               |
-| **DLQ**      | Captures failed messages from `OrderQueue` after 3 failed attempts  |
+| AWS Service  | Functionality                                                         |
+|--------------|------------------------------------------------------------------------|
+| **DynamoDB** | Acts as the primary data store for order records in the `Orders` table |
+| **SNS**      | `OrderTopic` publishes events each time a new order is placed         |
+| **SQS**      | `OrderQueue` buffers messages published by the SNS topic              |
+| **Lambda**   | Consumes messages from SQS and writes order details to DynamoDB       |
+| **DLQ**      | Collects messages that fail processing after three retries            |
 
 ---
 
-## Setup Instructions
+## Setup Guide
 
 ### 1. DynamoDB Table – `Orders`
-- **Partition key**: `orderId` (String)
-- **Other attributes**: `userId`, `itemName`, `quantity`, `status`, `timestamp`
+- Create a table named `Orders`.
+- Use `orderId` (String) as the **partition key**.
+- Add additional fields: `userId`, `itemName`, `quantity`, `status`, and `timestamp`.
 
-### 2. SNS – `OrderTopic`
-- Create an SNS Topic named `OrderTopic`.
+### 2. SNS Topic – `OrderTopic`
+- Set up an SNS topic called `OrderTopic` to publish incoming order notifications.
 
-### 3. SQS – `OrderQueue` and `OrderDLQ`
-- Create a **Standard SQS Queue** named `OrderQueue`.
-- Create a **Dead Letter Queue (DLQ)** named `OrderDLQ`.
-- Attach DLQ to `OrderQueue` with `maxReceiveCount = 3`.
+### 3. SQS Queues – `OrderQueue` and `OrderDLQ`
+- Create a **Standard SQS queue** named `OrderQueue`.
+- Create a **Dead-Letter Queue** called `OrderDLQ`.
+- Link `OrderDLQ` to `OrderQueue` with a `maxReceiveCount` threshold of 3.
 
-### 4. Subscribe Queue to SNS Topic
-- Subscribe `OrderQueue` to `OrderTopic`.
-- Ensure `OrderQueue` policy allows SNS to send messages.
-
+### 4. SNS Subscription
+- Subscribe `OrderQueue` to the `OrderTopic`.
+- Update the queue’s access policy to allow message publishing from SNS.
